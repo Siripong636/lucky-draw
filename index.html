@@ -49,23 +49,38 @@ button:active{
 <button onclick="start()">เริ่มสุ่ม</button>
 
 <script>
+const numbers = [
+17454,19866,20061,20580,20663,20722,20809,21038,21052,21202,
+21262,21276,21674,22022,22557,22818,23040,23077,23080,23085,
+23089,23194,23219,23226,23702,23726,23741,23836,24007,24128
+];
+
+let used = [];
+
 function start(){
-  let digits = 3;
-  let result = "";
-  let i = 0;
+  if(used.length === numbers.length){
+    alert("เลขถูกใช้ครบแล้ว");
+    return;
+  }
+
+  let pool = numbers.filter(n => !used.includes(n));
+  let final = pool[Math.floor(Math.random()*pool.length)].toString();
+  used.push(parseInt(final));
+
+  let display = ["-","-","-","-","-"];
+  let index = 0;
+
   let interval = setInterval(()=>{
-    let n = Math.floor(Math.random()*10);
-    document.getElementById("num").innerText =
-      result + n + "-".repeat(digits-i-1);
-    i++;
-    if(i===digits){
+    display[index] = final[index];
+    document.getElementById("num").innerText = display.join(" ");
+    index++;
+    if(index === 5){
       clearInterval(interval);
-      document.getElementById("num").innerText =
-        Math.floor(100 + Math.random()*900);
     }
-  },500);
+  },600);
 }
 </script>
+
 
 </body>
 </html>
