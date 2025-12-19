@@ -49,7 +49,21 @@ button:active{
 
 <h1>จับรางวัล Lucky Draw</h1>
 
-<div id="num" class="number">🤩🤩🤩🤩🤩</div>
+<div id="num" class="number">
+  <span class="digit">0</span>
+  <span class="digit">0</span>
+  <span class="digit">0</span>
+  <span class="digit">0</span>
+  <span class="digit">0</span>
+</div>
+
+  .digit {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
 
 <button onclick="start()">เริ่มสุ่ม</button>
 
@@ -70,18 +84,28 @@ function start(){
   let final = pool[Math.floor(Math.random()*pool.length)].toString();
   used.push(parseInt(final));
 
-  let display = ["🤩","🤩","🤩","🤩","🤩"];
-  let index = 0;
+    const digits = document.querySelectorAll(".digit");
+  let intervals = [];
 
-  let interval = setInterval(()=>{
-    display[index] = final[index];
-    document.getElementById("num").innerText = display.join(" ");
-    index++;
-    if(index === 5){
-      clearInterval(interval);
-      shootConfetti();
-    }
-  },600);
+  // เริ่มหมุนทุกหลัก
+  digits.forEach((d, i) => {
+    intervals[i] = setInterval(() => {
+      d.textContent = Math.floor(Math.random() * 10);
+      d.style.transform = "translateY(-10px)";
+      setTimeout(() => d.style.transform = "translateY(0)", 100);
+    }, 80);
+  });
+
+  // หยุดทีละหลัก
+  digits.forEach((d, i) => {
+    setTimeout(() => {
+      clearInterval(intervals[i]);
+      d.textContent = final[i];
+      if(i === digits.length - 1){
+        shootConfetti();
+      }
+    }, 1200 + i * 700);
+  });
 }
 
 function shootConfetti() {
