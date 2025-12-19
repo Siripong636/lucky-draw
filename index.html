@@ -39,6 +39,12 @@ button{
 button:active{
   transform:scale(0.97);
 }
+    .digit {
+  display: inline-block;
+  width: 1em;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
 </style>
 </head>
 <body>
@@ -56,14 +62,6 @@ button:active{
   <span class="digit">0</span>
   <span class="digit">0</span>
 </div>
-
-  .digit {
-  display: inline-block;
-  width: 1em;
-  text-align: center;
-  transition: transform 0.2s ease;
-}
-
 
 <button onclick="start()">เริ่มสุ่ม</button>
 
