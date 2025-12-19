@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Lucky Draw - Thai Airways</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#370E62;
+  color:#F5C300;
+  text-align:center;
+}
+.logo{
+  margin-top:20px;
+}
+.logo img{
+  max-width:180px;
+}
+.number{
+  font-size:80px;
+  letter-spacing:20px;
+  margin:40px 0;
+}
+button{
+  font-size:28px;
+  padding:20px 50px;
+  border:none;
+  border-radius:12px;
+  background:#B6007D;
+  color:white;
+}
+button:active{
+  transform:scale(0.97);
+}
+</style>
+</head>
+<body>
+
+<div class="logo">
+  <img src="logo.png">
+</div>
+
+<h1>จับรางวัล Lucky Draw</h1>
+
+<div id="num" class="number">---</div>
+
+<button onclick="start()">เริ่มสุ่ม</button>
+
+<script>
+function start(){
+  let digits = 3;
+  let result = "";
+  let i = 0;
+  let interval = setInterval(()=>{
+    let n = Math.floor(Math.random()*10);
+    document.getElementById("num").innerText =
+      result + n + "-".repeat(digits-i-1);
+    i++;
+    if(i===digits){
+      clearInterval(interval);
+      document.getElementById("num").innerText =
+        Math.floor(100 + Math.random()*900);
+    }
+  },500);
+}
+</script>
+
+</body>
+</html>
