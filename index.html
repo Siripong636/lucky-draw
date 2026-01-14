@@ -3,9 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <title>Lucky Draw - Thai Airways</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <style>
-  html {
+html{
   -webkit-text-size-adjust: 100%;
 }
 
@@ -16,61 +19,98 @@ body{
   color:#F5C300;
   text-align:center;
 }
+
 .logo{
   margin-top:20px;
 }
 .logo img{
   max-width:180px;
+  width:40vw;
 }
+
+h1{
+  margin-top:10px;
+  font-size:clamp(22px, 4vw, 40px);
+}
+
 .number{
-  font-size: 10vw;     
-  letter-spacing: 2vw;
-  margin: 30px 0;
-  line-height: 1.2;
+  font-size:clamp(48px, 10vw, 120px);
+  letter-spacing:1.5vw;
+  margin:30px 0;
 }
+
+.digit{
+  display:inline-block;
+  width:1em;
+  text-align:center;
+}
+
 button{
-  font-size:28px;
-  padding:20px 50px;
+  font-size:clamp(20px, 3vw, 28px);
+  padding:18px 50px;
   border:none;
   border-radius:12px;
   background:#B6007D;
   color:white;
+  cursor:pointer;
 }
 button:active{
   transform:scale(0.97);
 }
-    .digit {
-  display: inline-block;
-  width: 1em;
-  text-align: center;
-  transition: transform 0.2s ease;
+
+/* ประวัติรางวัล */
+.history{
+  margin-top:40px;
+  font-size:clamp(16px, 2.5vw, 22px);
+}
+.history ul{
+  list-style:none;
+  padding:0;
+}
+.history li{
+  margin:6px 0;
+  letter-spacing:0.3em;
 }
 </style>
 </head>
+
 <body>
 
 <div class="logo">
-  <img src="logo.png">
+  <img src="logo.png" alt="Thai Airways">
 </div>
 
 <h1>จับรางวัล Lucky Draw</h1>
 
+<!-- เลข 5 หลัก -->
 <div id="num" class="number">
-  <span class="digit">0</span>
-  <span class="digit">0</span>
-  <span class="digit">0</span>
-  <span class="digit">0</span>
-  <span class="digit">0</span>
+  <span class="digit">–</span>
+  <span class="digit">–</span>
+  <span class="digit">–</span>
+  <span class="digit">–</span>
+  <span class="digit">–</span>
 </div>
 
 <button onclick="start()">เริ่มสุ่ม</button>
 
+<!-- ประวัติ -->
+<div class="history">
+  <h3>เลขที่ถูกรางวัลก่อนหน้า</h3>
+  <ul id="historyList"></ul>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
 <script>
 const numbers = [
-20580,20722,27128,27842,29171,31466,32385,32858,33474,36365,39394,49636
+  20580,20722,27128,27842,29171,
+  31466,32385,32858,33474,36365,
+  39394,49636
 ];
 
 let used = [];
+let history = [];
 
 function start(){
   if(used.length === numbers.length){
@@ -78,61 +118,73 @@ function start(){
     return;
   }
 
-  let pool = numbers.filter(n => !used.includes(n));
-  let final = pool[Math.floor(Math.random()*pool.length)].toString();
+  const pool = numbers.filter(n => !used.includes(n));
+  const final = pool[Math.floor(Math.random()*pool.length)]
+                  .toString().padStart(5,"0");
   used.push(parseInt(final));
 
-    const digits = document.querySelectorAll(".digit");
+  const digits = document.querySelectorAll(".digit");
   let intervals = [];
 
-  // เริ่มหมุนทุกหลัก
+  // หมุนเลขทุกหลัก
   digits.forEach((d, i) => {
     intervals[i] = setInterval(() => {
-      d.textContent = Math.floor(Math.random() * 10);
+      d.textContent = Math.floor(Math.random()*10);
       d.style.transform = "translateY(-10px)";
-      setTimeout(() => d.style.transform = "translateY(0)", 100);
-    }, 80);
+      setTimeout(()=>d.style.transform="translateY(0)",100);
+    },80);
   });
 
   // หยุดทีละหลัก
   digits.forEach((d, i) => {
-    setTimeout(() => {
+    setTimeout(()=>{
       clearInterval(intervals[i]);
       d.textContent = final[i];
+
       if(i === digits.length - 1){
         shootConfetti();
+        addHistory(final);
       }
-    }, 1200 + i * 700);
+    }, 1200 + i*600);
   });
 }
 
-function shootConfetti() {
-  const duration = 3 * 1000;
+function shootConfetti(){
+  const duration = 2500;
   const end = Date.now() + duration;
 
-  (function frame() {
+  (function frame(){
     confetti({
-      particleCount: 7,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0 }
+      particleCount:6,
+      angle:60,
+      spread:55,
+      origin:{x:0}
     });
     confetti({
-      particleCount: 7,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1 }
+      particleCount:6,
+      angle:120,
+      spread:55,
+      origin:{x:1}
     });
-
-    if (Date.now() < end) {
+    if(Date.now() < end){
       requestAnimationFrame(frame);
     }
   })();
 }
 
-</script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+function addHistory(num){
+  history.unshift(num);
+  if(history.length > 5) history.pop();
 
+  const list = document.getElementById("historyList");
+  list.innerHTML = "";
+  history.forEach(n=>{
+    const li = document.createElement("li");
+    li.textContent = n;
+    list.appendChild(li);
+  });
+}
+</script>
 
 </body>
 </html>
