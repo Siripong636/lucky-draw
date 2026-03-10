@@ -1,76 +1,76 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
 <meta charset="UTF-8">
+<title>Lucky Draw - Thai Airways</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lucky Draw Event</title>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
 
 body{
-background:#4b1674;
-font-family:Arial;
-text-align:center;
-color:#FFD700;
 margin:0;
+font-family:Arial;
+background:#370E62;
+color:#F5C300;
+text-align:center
 }
 
 .logo{
-margin-top:20px;
+margin-top:25px
 }
 
-.title{
-font-size:40px;
-font-weight:bold;
-margin-top:10px;
+.logo img{
+width:180px
 }
 
-.numbers{
-font-size:150px;
+h1{
+font-size:42px;
+margin-top:10px
+}
+
+.number{
+font-size:120px;
 letter-spacing:40px;
-margin:40px 0;
+margin:40px 0
+}
+
+.digit{
+display:inline-block;
+width:1em
 }
 
 button{
 font-size:20px;
-padding:15px 35px;
+padding:14px 30px;
 margin:10px;
 border:none;
-border-radius:12px;
-background:#d1007a;
+border-radius:10px;
+background:#B6007D;
 color:white;
-cursor:pointer;
+cursor:pointer
 }
 
 button:hover{
-background:#ff008c;
+opacity:0.9
 }
 
-.winner-area{
-margin-top:40px;
+.winner-board{
+margin-top:60px
 }
 
-#winnerName{
-font-size:28px;
-margin-top:10px;
-}
-
-#winnerList{
-margin-top:30px;
+.winner-list{
 display:flex;
 justify-content:center;
 gap:20px;
 flex-wrap:wrap;
-font-size:18px;
+margin-top:20px
 }
 
-.nameBox{
+.winner-item{
 background:rgba(255,255,255,0.15);
 padding:10px 20px;
 border-radius:10px;
+font-size:22px
 }
 
 </style>
@@ -78,124 +78,170 @@ border-radius:10px;
 
 <body>
 
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Thai_Airways_Logo.svg/512px-Thai_Airways_Logo.svg.png" width="120" class="logo">
+<div class="logo">
+<img src="logo.png">
+</div>
 
-<div class="title">Lucky Draw</div>
+<h1>Lucky Draw</h1>
 
-<div class="numbers" id="numbers">0 0 0 0 0</div>
+<div class="number">
+<span class="digit">0</span>
+<span class="digit">0</span>
+<span class="digit">0</span>
+<span class="digit">0</span>
+<span class="digit">0</span>
+</div>
 
 <div>
-<button onclick="draw('DC')">DC</button>
-<button onclick="draw('DG')">DG</button>
-<button onclick="draw('DXDV')">DX+DV</button>
+<button onclick="start('DC')">DC</button>
+<button onclick="start('DG')">DG</button>
+<button onclick="start('DXDV')">DX+DV</button>
 </div>
 
-<br><br>
-
-<input type="file" id="excelFile">
-
-<div class="winner-area">
-<div>Lucky Name</div>
-<div id="winnerName">---</div>
+<div class="winner-board">
+<h3>Lucky Name</h3>
+<div id="winnerList" class="winner-list"></div>
 </div>
 
-<div id="winnerList"></div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
 
-let data=[]
-let winners=[]
+const maxWinners={
+DC:7,
+DG:12,
+DXDV:5
+}
 
-document.getElementById("excelFile").addEventListener("change",handleFile)
+let data={
+DC:[],
+DG:[],
+DXDV:[]
+}
 
-function handleFile(e){
+let winners={
+DC:[],
+DG:[],
+DXDV:[]
+}
 
-const file=e.target.files[0]
-const reader=new FileReader()
+let lastWinners=[]
 
-reader.onload=function(e){
+window.onload=function(){
+loadExcel()
+}
 
-const workbook=XLSX.read(e.target.result,{type:'binary'})
+function loadExcel(){
+
+fetch("lucky_draw.xlsx")
+.then(res=>res.arrayBuffer())
+.then(dataBuffer=>{
+
+const workbook=XLSX.read(dataBuffer,{type:"array"})
 const sheet=workbook.Sheets[workbook.SheetNames[0]]
-data=XLSX.utils.sheet_to_json(sheet)
+const rows=XLSX.utils.sheet_to_json(sheet)
+
+rows.forEach(r=>{
+
+const obj={
+num:parseInt(r.Number),
+name:r.Name
+}
+
+if(r.Category==="DC")data.DC.push(obj)
+if(r.Category==="DG")data.DG.push(obj)
+
+if(r.Category==="DX" || r.Category==="DV"){
+data.DXDV.push(obj)
+}
+
+})
+
+console.log("Excel Loaded")
+
+})
 
 }
 
-reader.readAsBinaryString(file)
+function start(category){
 
-}
-
-function draw(category){
-
-let pool=[]
-
-if(category==="DXDV"){
-pool=data.filter(x=>x.Category==="DX" || x.Category==="DV")
-}
-else{
-pool=data.filter(x=>x.Category===category)
-}
-
-if(pool.length===0){
-alert("No data")
+if(winners[category].length>=maxWinners[category]){
+alert("สุ่มครบ "+maxWinners[category]+" รางวัลแล้ว")
 return
 }
 
-let random=pool[Math.floor(Math.random()*pool.length)]
+const usedNumbers=winners[category].map(w=>w.num)
 
-animateNumber(random.Number)
+const pool=data[category].filter(n=>!usedNumbers.includes(n.num))
+
+if(pool.length===0){
+alert("ไม่มีรายชื่อเหลือ")
+return
+}
+
+const winner=pool[Math.floor(Math.random()*pool.length)]
+
+winners[category].push(winner)
+
+spinNumber(winner)
+
+}
+
+function spinNumber(winner){
+
+const finalNumber=winner.num.toString().padStart(5,"0")
+
+const digits=document.querySelectorAll(".digit")
+
+let intervals=[]
+
+digits.forEach((d,i)=>{
+intervals[i]=setInterval(()=>{
+d.textContent=Math.floor(Math.random()*10)
+},80)
+})
+
+digits.forEach((d,i)=>{
 
 setTimeout(()=>{
 
-document.getElementById("winnerName").innerText=random.Name
+clearInterval(intervals[i])
+d.textContent=finalNumber[i]
 
-addWinner(random)
+if(i===digits.length-1){
+
+addWinner(winner)
 
 fireworks()
 
-},2000)
+}
+
+},1200+i*600)
+
+})
 
 }
 
-function animateNumber(num){
+function addWinner(winner){
 
-let str=num.toString().padStart(5,"0")
+lastWinners.unshift(winner)
 
-let interval=setInterval(()=>{
-
-let random=""
-for(let i=0;i<5;i++){
-random+=Math.floor(Math.random()*10)+" "
+if(lastWinners.length>5){
+lastWinners.pop()
 }
-
-document.getElementById("numbers").innerText=random
-
-},60)
-
-setTimeout(()=>{
-
-clearInterval(interval)
-
-document.getElementById("numbers").innerText=str.split("").join(" ")
-
-},2000)
-
-}
-
-function addWinner(w){
-
-winners.unshift(w)
-
-if(winners.length>5) winners.pop()
 
 const list=document.getElementById("winnerList")
 list.innerHTML=""
 
-winners.forEach(x=>{
+lastWinners.forEach(w=>{
 
-let div=document.createElement("div")
-div.className="nameBox"
-div.textContent=x.Name
+const div=document.createElement("div")
+
+div.className="winner-item"
+
+div.textContent=w.name
+
 list.appendChild(div)
 
 })
@@ -204,28 +250,28 @@ list.appendChild(div)
 
 function fireworks(){
 
-const duration = 1500
-const end = Date.now() + duration
+const duration=1500
+const end=Date.now()+duration
 
 (function frame(){
 
 confetti({
-particleCount:12,
+particleCount:20,
 angle:60,
 spread:70,
-startVelocity:55,
+startVelocity:60,
 origin:{x:0,y:1}
 })
 
 confetti({
-particleCount:12,
+particleCount:20,
 angle:120,
 spread:70,
-startVelocity:55,
+startVelocity:60,
 origin:{x:1,y:1}
 })
 
-if(Date.now() < end){
+if(Date.now()<end){
 requestAnimationFrame(frame)
 }
 
