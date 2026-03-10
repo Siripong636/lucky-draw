@@ -263,7 +263,11 @@ spread: 70,
 ticks: 200,
 zIndex: 9999
 }
-
+  
+function randomInRange(min, max) {
+return Math.random() * (max - min) + min
+}
+  
 (function frame(){
 
 confetti({
