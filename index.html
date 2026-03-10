@@ -5,210 +5,218 @@
 <title>Lucky Draw - Thai Airways</title>
 
 <meta name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+content="width=device-width, initial-scale=1.0">
 
 <style>
-html{
-  -webkit-text-size-adjust: 100%;
-}
 
 body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#370E62;
-  color:#F5C300;
-  text-align:center;
-}
-
-.logo{
-  margin-top:20px;
-}
-.logo img{
-  max-width:180px;
-  width:40vw;
-}
-
-h1{
-  margin-top:10px;
-  font-size:clamp(22px, 4vw, 40px);
+margin:0;
+font-family:Arial;
+background:#370E62;
+color:#F5C300;
+text-align:center
 }
 
 .number{
-  font-size:clamp(48px, 10vw, 120px);
-  letter-spacing:1.5vw;
-  margin:30px 0;
+font-size:clamp(48px,10vw,120px);
+letter-spacing:1.5vw;
+margin:30px 0
 }
 
 .digit{
-  display:inline-block;
-  width:1em;
-  text-align:center;
-  transition:transform 0.2s ease;
+display:inline-block;
+width:1em
 }
 
 button{
-  font-size:clamp(20px, 3vw, 28px);
-  padding:18px 50px;
-  border:none;
-  border-radius:12px;
-  background:#B6007D;
-  color:white;
-  cursor:pointer;
-}
-button:active{
-  transform:scale(0.97);
+padding:12px 24px;
+margin:10px;
+font-size:20px;
+border:none;
+border-radius:8px;
+background:#B6007D;
+color:white;
+cursor:pointer
 }
 
-/* ===== ประวัติรางวัล ===== */
+#winnerName{
+font-size:36px;
+margin-top:10px;
+color:white
+}
+
 .history{
-  margin-top:40px;
-}
-
-.history h3{
-  font-size:clamp(18px, 3vw, 24px);
+margin-top:40px
 }
 
 .history-list{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  margin-top:15px;
-  flex-wrap:wrap;
+display:flex;
+justify-content:center;
+gap:20px;
+flex-wrap:wrap
 }
 
 .history-item{
-  background:rgba(255,255,255,0.12);
-  padding:12px 18px;
-  border-radius:10px;
-  font-size:clamp(18px, 3vw, 26px);
-  min-width:90px;
-  letter-spacing:0.2em;
+background:rgba(255,255,255,0.15);
+padding:10px 16px;
+border-radius:8px;
+font-size:20px
 }
+
 </style>
 </head>
 
 <body>
 
-<div class="logo">
-  <img src="logo.png" alt="Thai Airways">
-</div>
-
 <h1>Lucky Draw</h1>
 
-<!-- เลข 5 หลัก -->
-<div id="num" class="number">
-  <span class="digit">0</span>
-  <span class="digit">0</span>
-  <span class="digit">0</span>
-  <span class="digit">0</span>
-  <span class="digit">0</span>
+<input type="file" id="excelFile" accept=".xlsx">
+
+<div class="number">
+<span class="digit">0</span>
+<span class="digit">0</span>
+<span class="digit">0</span>
+<span class="digit">0</span>
+<span class="digit">0</span>
 </div>
 
-<button onclick="start()">เริ่มสุ่ม</button>
+<h2 id="winnerName"></h2>
 
-<!-- ประวัติ -->
+<div>
+<button onclick="start('DC')">สุ่ม DC</button>
+<button onclick="start('DG')">สุ่ม DG</button>
+<button onclick="start('DXDV')">สุ่ม DX+DV</button>
+</div>
+
 <div class="history">
-  <h3>เลขที่ถูกรางวัลก่อนหน้า</h3>
-  <div id="historyList" class="history-list"></div>
+<h3>รายชื่อผู้โชคดี</h3>
+<div id="historyList" class="history-list"></div>
 </div>
 
-<!-- Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-const numbers = [
-20580,
-20722,
-26169,
-27128,
-27842,
-29171,
-31466,
-32385,
-32858,
-33474,
-39394,
-49636
 
-];
+let data={DC:[],DG:[],DXDV:[]}
+let used={DC:[],DG:[],DXDV:[]}
+let history=[]
 
-let used = [];
-let history = [];
+document.getElementById("excelFile").addEventListener("change",loadExcel)
 
-function start(){
-  if(used.length === numbers.length){
-    alert("เลขถูกใช้ครบแล้ว");
-    return;
-  }
+function loadExcel(e){
 
-  const pool = numbers.filter(n => !used.includes(n));
-  const final = pool[Math.floor(Math.random()*pool.length)]
-                .toString().padStart(5,"0");
-  used.push(parseInt(final));
+const file=e.target.files[0]
+const reader=new FileReader()
 
-  const digits = document.querySelectorAll(".digit");
-  let intervals = [];
+reader.onload=function(evt){
 
-  // หมุนเลขทุกหลัก
-  digits.forEach((d, i) => {
-    intervals[i] = setInterval(() => {
-      d.textContent = Math.floor(Math.random()*10);
-      d.style.transform = "translateY(-10px)";
-      setTimeout(()=>d.style.transform="translateY(0)",100);
-    },80);
-  });
+const workbook=XLSX.read(evt.target.result,{type:'binary'})
+const sheet=workbook.Sheets[workbook.SheetNames[0]]
+const rows=XLSX.utils.sheet_to_json(sheet)
 
-  // หยุดทีละหลัก
-  digits.forEach((d, i) => {
-    setTimeout(()=>{
-      clearInterval(intervals[i]);
-      d.textContent = final[i];
+rows.forEach(r=>{
 
-      if(i === digits.length - 1){
-        shootConfetti();
-        addHistory(final);
-      }
-    }, 1200 + i*600);
-  });
+const obj={
+num:parseInt(r.Number),
+name:r.Name
+}
+
+if(r.Category==="DC") data.DC.push(obj)
+if(r.Category==="DG") data.DG.push(obj)
+if(r.Category==="DXDV") data.DXDV.push(obj)
+
+})
+
+alert("โหลดรายชื่อสำเร็จ")
+
+}
+
+reader.readAsBinaryString(file)
+
+}
+
+function start(category){
+
+const pool=data[category].filter(n=>!used[category].includes(n.num))
+
+if(pool.length===0){
+alert("สุ่มครบแล้วในหมวดนี้")
+return
+}
+
+const winner=pool[Math.floor(Math.random()*pool.length)]
+
+used[category].push(winner.num)
+
+const finalNumber=winner.num.toString().padStart(5,"0")
+const finalName=winner.name
+
+const digits=document.querySelectorAll(".digit")
+let intervals=[]
+
+digits.forEach((d,i)=>{
+intervals[i]=setInterval(()=>{
+d.textContent=Math.floor(Math.random()*10)
+},80)
+})
+
+digits.forEach((d,i)=>{
+
+setTimeout(()=>{
+
+clearInterval(intervals[i])
+d.textContent=finalNumber[i]
+
+if(i===digits.length-1){
+showWinner(finalName)
+shootConfetti()
+}
+
+},1200+i*600)
+
+})
+
+}
+
+function showWinner(name){
+
+document.getElementById("winnerName").textContent=name
+
+history.unshift(name)
+
+if(history.length>5)history.pop()
+
+const list=document.getElementById("historyList")
+list.innerHTML=""
+
+history.forEach(n=>{
+const div=document.createElement("div")
+div.className="history-item"
+div.textContent=n
+list.appendChild(div)
+})
+
 }
 
 function shootConfetti(){
-  const duration = 2500;
-  const end = Date.now() + duration;
 
-  (function frame(){
-    confetti({
-      particleCount:7,
-      angle:60,
-      spread:55,
-      origin:{x:0}
-    });
-    confetti({
-      particleCount:7,
-      angle:120,
-      spread:55,
-      origin:{x:1}
-    });
-    if(Date.now() < end){
-      requestAnimationFrame(frame);
-    }
-  })();
+const duration=2500
+const end=Date.now()+duration
+
+(function frame(){
+
+confetti({particleCount:7,angle:60,spread:55,origin:{x:0}})
+confetti({particleCount:7,angle:120,spread:55,origin:{x:1}})
+
+if(Date.now()<end){
+requestAnimationFrame(frame)
 }
 
-function addHistory(num){
-  history.unshift(num);
-  if(history.length > 5) history.pop();
+})()
 
-  const list = document.getElementById("historyList");
-  list.innerHTML = "";
-
-  history.forEach(n=>{
-    const div = document.createElement("div");
-    div.className = "history-item";
-    div.textContent = n;
-    list.appendChild(div);
-  });
 }
+
 </script>
 
 </body>
