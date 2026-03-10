@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <title>Lucky Draw - Thai Airways</title>
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 
@@ -17,9 +16,22 @@ color:#F5C300;
 text-align:center
 }
 
+.logo{
+margin-top:25px
+}
+
+.logo img{
+width:180px
+}
+
+h1{
+font-size:42px;
+margin-top:10px
+}
+
 .number{
-font-size:clamp(48px,10vw,120px);
-letter-spacing:1.5vw;
+font-size:120px;
+letter-spacing:40px;
 margin:30px 0
 }
 
@@ -29,44 +41,46 @@ width:1em
 }
 
 button{
-padding:12px 24px;
-margin:10px;
 font-size:20px;
+padding:14px 30px;
+margin:10px;
 border:none;
-border-radius:8px;
+border-radius:10px;
 background:#B6007D;
 color:white;
 cursor:pointer
 }
 
-#winnerName{
-font-size:36px;
-margin-top:10px;
-color:white
-}
-
 .history{
-margin-top:40px
+margin-top:50px
 }
 
 .history-list{
 display:flex;
 justify-content:center;
-gap:20px;
+gap:18px;
 flex-wrap:wrap
 }
 
 .history-item{
 background:rgba(255,255,255,0.15);
-padding:10px 16px;
-border-radius:8px;
+padding:10px 20px;
+border-radius:10px;
 font-size:20px
+}
+
+#excelFile{
+display:none
 }
 
 </style>
 </head>
 
 <body>
+
+<div class="logo">
+<img src="logo.png">
+</div>
 
 <h1>Lucky Draw</h1>
 
@@ -79,8 +93,6 @@ font-size:20px
 <span class="digit">0</span>
 <span class="digit">0</span>
 </div>
-
-<h2 id="winnerName"></h2>
 
 <div>
 <button onclick="start('DC')">สุ่ม DC</button>
@@ -98,15 +110,40 @@ font-size:20px
 
 <script>
 
-let data={DC:[],DG:[],DXDV:[]}
-let used={DC:[],DG:[],DXDV:[]}
+/* จำนวนรางวัล */
+
+const maxWinners={
+DC:7,
+DG:12,
+DXDV:5
+}
+
+let data={
+DC:[],
+DG:[],
+DXDV:[]
+}
+
+let used={
+DC:[],
+DG:[],
+DXDV:[]
+}
+
 let history=[]
+
+/* upload excel */
+
+document.body.addEventListener("click",function(){
+document.getElementById("excelFile").click()
+})
 
 document.getElementById("excelFile").addEventListener("change",loadExcel)
 
 function loadExcel(e){
 
 const file=e.target.files[0]
+
 const reader=new FileReader()
 
 reader.onload=function(evt){
@@ -122,9 +159,12 @@ num:parseInt(r.Number),
 name:r.Name
 }
 
-if(r.Category==="DC") data.DC.push(obj)
-if(r.Category==="DG") data.DG.push(obj)
-if(r.Category==="DXDV") data.DXDV.push(obj)
+if(r.Category==="DC")data.DC.push(obj)
+if(r.Category==="DG")data.DG.push(obj)
+
+if(r.Category==="DX" || r.Category==="DV"){
+data.DXDV.push(obj)
+}
 
 })
 
@@ -136,12 +176,19 @@ reader.readAsBinaryString(file)
 
 }
 
+/* random */
+
 function start(category){
+
+if(used[category].length>=maxWinners[category]){
+alert("สุ่มครบ "+maxWinners[category]+" รางวัลแล้ว")
+return
+}
 
 const pool=data[category].filter(n=>!used[category].includes(n.num))
 
 if(pool.length===0){
-alert("สุ่มครบแล้วในหมวดนี้")
+alert("ไม่มีรายชื่อเหลือ")
 return
 }
 
@@ -150,9 +197,9 @@ const winner=pool[Math.floor(Math.random()*pool.length)]
 used[category].push(winner.num)
 
 const finalNumber=winner.num.toString().padStart(5,"0")
-const finalName=winner.name
 
 const digits=document.querySelectorAll(".digit")
+
 let intervals=[]
 
 digits.forEach((d,i)=>{
@@ -169,7 +216,7 @@ clearInterval(intervals[i])
 d.textContent=finalNumber[i]
 
 if(i===digits.length-1){
-showWinner(finalName)
+showWinner(winner.name)
 shootConfetti()
 }
 
@@ -179,9 +226,9 @@ shootConfetti()
 
 }
 
-function showWinner(name){
+/* history */
 
-document.getElementById("winnerName").textContent=name
+function showWinner(name){
 
 history.unshift(name)
 
@@ -199,15 +246,17 @@ list.appendChild(div)
 
 }
 
+/* confetti */
+
 function shootConfetti(){
 
-const duration=2500
+const duration=2000
 const end=Date.now()+duration
 
 (function frame(){
 
-confetti({particleCount:7,angle:60,spread:55,origin:{x:0}})
-confetti({particleCount:7,angle:120,spread:55,origin:{x:1}})
+confetti({particleCount:6,angle:60,spread:55,origin:{x:0}})
+confetti({particleCount:6,angle:120,spread:55,origin:{x:1}})
 
 if(Date.now()<end){
 requestAnimationFrame(frame)
