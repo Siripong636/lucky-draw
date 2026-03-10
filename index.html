@@ -250,28 +250,37 @@ list.appendChild(div)
 
 function fireworks(){
 
-const duration=1500
-const end=Date.now()+duration
+const duration = 1500
+const end = Date.now() + duration
+
+const defaults = {
+startVelocity: 60,
+spread: 70,
+ticks: 200,
+zIndex: 9999
+}
+
+function randomInRange(min, max) {
+return Math.random() * (max - min) + min
+}
 
 (function frame(){
 
 confetti({
+...defaults,
 particleCount:20,
 angle:60,
-spread:70,
-startVelocity:60,
-origin:{x:0,y:1}
+origin:{ x:0.05, y:0.9 }
 })
 
 confetti({
+...defaults,
 particleCount:20,
 angle:120,
-spread:70,
-startVelocity:60,
-origin:{x:1,y:1}
+origin:{ x:0.95, y:0.9 }
 })
 
-if(Date.now()<end){
+if(Date.now() < end){
 requestAnimationFrame(frame)
 }
 
