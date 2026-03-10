@@ -146,7 +146,8 @@ rows.forEach(r=>{
 
 const obj={
 num:parseInt(r.Number),
-name:r.Name
+name:r.Name,
+category:r.Category
 }
 
 if(r.Category==="DC")data.DC.push(obj)
@@ -237,10 +238,13 @@ list.innerHTML=""
 lastWinners.forEach(w=>{
 
 const div=document.createElement("div")
-
 div.className="winner-item"
 
+if(w.category==="DX" || w.category==="DV"){
+div.textContent=w.name+" ("+w.category+")"
+}else{
 div.textContent=w.name
+}
 
 list.appendChild(div)
 
@@ -260,10 +264,6 @@ ticks: 200,
 zIndex: 9999
 }
 
-function randomInRange(min, max) {
-return Math.random() * (max - min) + min
-}
-
 (function frame(){
 
 confetti({
@@ -280,7 +280,7 @@ angle:120,
 origin:{ x:0.95, y:0.9 }
 })
 
-if(Date.now() < end){
+if(Date.now()<end){
 requestAnimationFrame(frame)
 }
 
