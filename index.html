@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>Lucky Draw - Thai Airways</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
@@ -51,26 +50,27 @@ color:white;
 cursor:pointer
 }
 
-.history{
-margin-top:50px
-}
-
-.history-list{
+.winner-board{
+margin-top:60px;
 display:flex;
 justify-content:center;
-gap:18px;
+gap:60px;
 flex-wrap:wrap
 }
 
-.history-item{
-background:rgba(255,255,255,0.15);
-padding:10px 20px;
-border-radius:10px;
-font-size:20px
+.category{
+text-align:left
 }
 
-#excelFile{
-display:none
+.category h3{
+margin-bottom:10px
+}
+
+.name{
+background:rgba(255,255,255,0.15);
+padding:8px 16px;
+margin:5px 0;
+border-radius:8px
 }
 
 </style>
@@ -84,8 +84,6 @@ display:none
 
 <h1>Lucky Draw</h1>
 
-<input type="file" id="excelFile" accept=".xlsx">
-
 <div class="number">
 <span class="digit">0</span>
 <span class="digit">0</span>
@@ -95,22 +93,34 @@ display:none
 </div>
 
 <div>
-<button onclick="start('DC')">สุ่ม DC</button>
-<button onclick="start('DG')">สุ่ม DG</button>
-<button onclick="start('DXDV')">สุ่ม DX+DV</button>
+<button onclick="start('DC')">DC Lucky Draw</button>
+<button onclick="start('DG')">DG Lucky Draw</button>
+<button onclick="start('DXDV')">DX+DV Lucky Draw</button>
 </div>
 
-<div class="history">
-<h3>รายชื่อผู้โชคดี</h3>
-<div id="historyList" class="history-list"></div>
+<div class="winner-board">
+
+<div class="category">
+<h3>DC</h3>
+<div id="listDC"></div>
+</div>
+
+<div class="category">
+<h3>DG</h3>
+<div id="listDG"></div>
+</div>
+
+<div class="category">
+<h3>DX+DV</h3>
+<div id="listDXDV"></div>
+</div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-
-/* จำนวนรางวัล */
 
 const maxWinners={
 DC:7,
@@ -124,31 +134,23 @@ DG:[],
 DXDV:[]
 }
 
-let used={
+let winners={
 DC:[],
 DG:[],
 DXDV:[]
 }
 
-let history=[]
+window.onload=function(){
+loadExcel()
+}
 
-/* upload excel */
+function loadExcel(){
 
-document.body.addEventListener("click",function(){
-document.getElementById("excelFile").click()
-})
+fetch("lucky_draw.xlsx")
+.then(res=>res.arrayBuffer())
+.then(dataBuffer=>{
 
-document.getElementById("excelFile").addEventListener("change",loadExcel)
-
-function loadExcel(e){
-
-const file=e.target.files[0]
-
-const reader=new FileReader()
-
-reader.onload=function(evt){
-
-const workbook=XLSX.read(evt.target.result,{type:'binary'})
+const workbook=XLSX.read(dataBuffer,{type:"array"})
 const sheet=workbook.Sheets[workbook.SheetNames[0]]
 const rows=XLSX.utils.sheet_to_json(sheet)
 
@@ -168,24 +170,20 @@ data.DXDV.push(obj)
 
 })
 
-alert("โหลดรายชื่อสำเร็จ")
+})
 
 }
-
-reader.readAsBinaryString(file)
-
-}
-
-/* random */
 
 function start(category){
 
-if(used[category].length>=maxWinners[category]){
+if(winners[category].length>=maxWinners[category]){
 alert("สุ่มครบ "+maxWinners[category]+" รางวัลแล้ว")
 return
 }
 
-const pool=data[category].filter(n=>!used[category].includes(n.num))
+const usedNumbers=winners[category].map(w=>w.num)
+
+const pool=data[category].filter(n=>!usedNumbers.includes(n.num))
 
 if(pool.length===0){
 alert("ไม่มีรายชื่อเหลือ")
@@ -194,7 +192,13 @@ return
 
 const winner=pool[Math.floor(Math.random()*pool.length)]
 
-used[category].push(winner.num)
+winners[category].push(winner)
+
+spinNumber(winner,category)
+
+}
+
+function spinNumber(winner,category){
 
 const finalNumber=winner.num.toString().padStart(5,"0")
 
@@ -216,8 +220,11 @@ clearInterval(intervals[i])
 d.textContent=finalNumber[i]
 
 if(i===digits.length-1){
-showWinner(winner.name)
-shootConfetti()
+
+addWinner(category,winner)
+
+fireworks()
+
 }
 
 },1200+i*600)
@@ -226,37 +233,40 @@ shootConfetti()
 
 }
 
-/* history */
+function addWinner(category,winner){
 
-function showWinner(name){
+const list=document.getElementById("list"+category)
 
-history.unshift(name)
-
-if(history.length>5)history.pop()
-
-const list=document.getElementById("historyList")
-list.innerHTML=""
-
-history.forEach(n=>{
 const div=document.createElement("div")
-div.className="history-item"
-div.textContent=n
+
+div.className="name"
+
+div.textContent=winner.num+" "+winner.name
+
 list.appendChild(div)
-})
 
 }
 
-/* confetti */
+function fireworks(){
 
-function shootConfetti(){
-
-const duration=2000
+const duration=1500
 const end=Date.now()+duration
 
 (function frame(){
 
-confetti({particleCount:6,angle:60,spread:55,origin:{x:0}})
-confetti({particleCount:6,angle:120,spread:55,origin:{x:1}})
+confetti({
+particleCount:8,
+angle:60,
+spread:70,
+origin:{x:0}
+})
+
+confetti({
+particleCount:8,
+angle:120,
+spread:70,
+origin:{x:1}
+})
 
 if(Date.now()<end){
 requestAnimationFrame(frame)
